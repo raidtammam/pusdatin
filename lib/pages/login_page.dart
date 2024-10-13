@@ -3,6 +3,7 @@ import 'package:pusdatin_project/data/auth_credentials.dart';
 import 'package:pusdatin_project/pages/reset_pass_page.dart';
 import 'dart:async'; // Untuk delay
 import 'home_page.dart';
+import 'package:pusdatin_project/widgets/custom_text_field.dart'; // Import widget
 
 class LoginPage extends StatefulWidget {
   @override
@@ -15,7 +16,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isPasswordVisible = false;
-  bool _showLoadingScreen = false; // Untuk mengontrol tampilan loading screen
+  bool _showLoadingScreen = false;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -23,14 +24,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
-    // Setup Animation Controller untuk fade-out animasi
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-
-    // Inisialisasi animasi fade-out
     _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _animationController,
@@ -49,18 +46,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
-      // Mulai animasi fade-out
       await _animationController.forward();
-
-      // Setelah animasi selesai, tampilkan loading screen
       setState(() {
         _showLoadingScreen = true;
       });
 
-      // Simulasi loading selama 2 detik
       await Future.delayed(Duration(seconds: 2));
 
-      // Pindah ke halaman HomePage
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomePage()),
@@ -71,43 +63,36 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF3D0E22),
       body: Stack(
         children: [
-          // Form Login dengan animasi FadeTransition
           FadeTransition(
             opacity: _fadeAnimation,
             child: Center(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(24.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Teks "Masuk Akun"
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 25.0),
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 25.0),
                         child: Text(
                           'Masuk Akun',
                           style: TextStyle(
                             fontSize: 25.0,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                            color: Colors.white,
                           ),
                         ),
                       ),
 
                       // Input Email
-                      TextFormField(
+                      CustomTextField(
                         controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.email),
-                        ),
+                        label: 'Email',
+                        icon: Icons.email,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Email tidak boleh kosong';
@@ -115,35 +100,32 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                             return 'Masukkan email yang valid';
                           }
-                          if (value != AuthCredentials.email){
-                            return 'Email jangan beda goblok!';
+                          if (value != AuthCredentials.email) {
+                            return 'Email tidak valid!';
                           }
                           return null;
                         },
                       ),
-                      SizedBox(height: 20.0),
+                      const SizedBox(height: 20.0),
 
                       // Input Password
-                      TextFormField(
+                      CustomTextField(
                         controller: _passwordController,
+                        label: 'Password',
+                        icon: Icons.lock,
                         obscureText: !_isPasswordVisible,
-                        textInputAction: TextInputAction.done,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.lock),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.white,
                           ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -152,21 +134,21 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           if (value.length < 6) {
                             return 'Password minimal 6 karakter';
                           }
-                          if (value != AuthCredentials.password){
-                            return 'Password Salah Blok !!';
+                          if (value != AuthCredentials.password) {
+                            return 'Password salah!';
                           }
                           return null;
                         },
                         onFieldSubmitted: (value) {
-                          _login();
+                          _login(); // Jalankan login saat Enter ditekan
                         },
                       ),
+                      const SizedBox(height: 20.0),
 
-                      // "Lupa Password?" di sebelah kanan
                       Align(
                         alignment: Alignment.centerRight,
                         child: Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
+                          padding: const EdgeInsets.only(top: 20.0),
                           child: MouseRegion(
                             cursor: SystemMouseCursors.click,
                             child: GestureDetector(
@@ -174,21 +156,22 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ResetPasswordPage(),
+                                    builder: (context) =>
+                                        ResetPasswordPage(),
                                   ),
                                 );
                               },
-                              child: Text(
+                              child: const Text(
                                 'Lupa Password?',
                                 style: TextStyle(
-                                  color: Colors.blue,
+                                  color: Colors.white,
                                 ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                      SizedBox(height: 40.0),
+                      const SizedBox(height: 20.0),
                     ],
                   ),
                 ),
@@ -196,10 +179,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             ),
           ),
 
-          // Loading Screen
           if (_showLoadingScreen)
-            Center(
-              child: CircularProgressIndicator(),
+            const Center(
+              child: CircularProgressIndicator(color: Colors.white),
             ),
         ],
       ),
